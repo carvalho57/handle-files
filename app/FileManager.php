@@ -2,24 +2,23 @@
 
 namespace App;
 
-use App\Exception\FileNotFoundException;
+use App\Exception\CannotAcessFileException;
+use InvalidArgumentException;
 
 class FileManager {
 
-    private array $values = array();
-
-    /**
-     * @throws FileNotFoundException
-     * @throws \Exception
-     */
+    private $values;
+    private $extension;
+    
     public function readCsvFile(string $fileLocation, string $separator = ',') {
+        
+        if(!$this->canHandleFile($fileLocation))
+            throw new CannotAcessFileException();
 
-        //File Exist
-        if( !file_exists($fileLocation))
-            throw new FileNotFoundException();
+        $info = $this->getFileInfo($fileLocation);
 
-        if( !is_file($fileLocation) && !is_readable($fileLocation)) 
-            throw new \Exception("Is not a file or is not readable");
+        if($info['extension'] !== 'csv')
+            throw new InvalidArgumentException('Is not a valid CSV file');
 
         $handler = fopen($fileLocation,'r');
 
@@ -40,6 +39,41 @@ class FileManager {
 
         return $this;
     }    
+
+    public function readXML(string $fileLocation) {
+        if(!$this->canHandleFile($fileLocation))
+            throw new CannotAcessFileException();
+
+        $content = file_get_contents($fileLocation);
+
+        if($content === false)
+            throw new \Exception("Cannot open file: " . $fileLocation);
+
+        $xml = simplexml_load_string($content);
+        $this->values = json_decode(json_encode($xml),true);
+        return $this;
+    }
+
+    public function getFileInfo($fileLocation) {
+        $info = pathinfo($fileLocation);
+        $this->extension = strtolower($info['extension']);
+        return $info;
+    }
+
+    private function canHandleFile(string $path) {        
+        if( !file_exists($path)) {
+            echo "File does not exist: " . $path;
+            return false;
+        }
+
+        if( !is_file($path) && !is_readable($path))  {
+            echo "Is not a file";
+            return false;
+        }
+
+        return true;
+    }
+
 
     public function toJson() {
         return json_encode($this->values);

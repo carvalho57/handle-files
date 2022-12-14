@@ -5,13 +5,10 @@ use App\FileManager;
 require_once __DIR__ . '/../vendor/autoload.php';
 
 
-$path = __DIR__ . '/../files/example.csv';
+$path = __DIR__ . '/../files/example.xml';
 
 $manager = new FileManager();
 
-$content =  $manager->readCsvFile($path);
+$content = $manager->readXML($path)->toJson();
 
-
-var_dump($content->toArray());
-
-echo "-----------" . PHP_EOL;
+var_dump($content);
