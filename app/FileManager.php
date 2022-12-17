@@ -7,17 +7,16 @@ use InvalidArgumentException;
 
 class FileManager {
 
-    private $values;
-    private $extension;
+    private $values;    
     
     public function readCsvFile(string $fileLocation, string $separator = ',') {
         
         if(!$this->canHandleFile($fileLocation))
             throw new CannotAcessFileException();
 
-        $info = $this->getFileInfo($fileLocation);
+        $extension = pathinfo($fileLocation,PATHINFO_EXTENSION);
 
-        if($info['extension'] !== 'csv')
+        if($extension !== 'csv')
             throw new InvalidArgumentException('Is not a valid CSV file');
 
         $handler = fopen($fileLocation,'r');
@@ -44,6 +43,11 @@ class FileManager {
         if(!$this->canHandleFile($fileLocation))
             throw new CannotAcessFileException();
 
+        $extension = pathinfo($fileLocation,PATHINFO_EXTENSION);
+
+        if($extension !== 'xml')
+            throw new InvalidArgumentException('Is not a valid XML file');
+
         $content = file_get_contents($fileLocation);
 
         if($content === false)
@@ -52,12 +56,6 @@ class FileManager {
         $xml = simplexml_load_string($content);
         $this->values = json_decode(json_encode($xml),true);
         return $this;
-    }
-
-    public function getFileInfo($fileLocation) {
-        $info = pathinfo($fileLocation);
-        $this->extension = strtolower($info['extension']);
-        return $info;
     }
 
     private function canHandleFile(string $path) {        
